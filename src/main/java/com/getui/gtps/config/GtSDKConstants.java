@@ -24,6 +24,7 @@ public class GtSDKConstants {
         public final static String ManufacturerInitSwitch = Prefix.GtSDK + "manufacturerInitSwitch";
         public final static String ModuleSet = Prefix.GtSDK + "moduleSet";
         public final static String JudgeFile = Prefix.GtSDK + "judgeFile";
+        public final static String MThread = Prefix.GtSDK + "mThread";
         public final static String CallTimeout = Prefix.GtSDK + "callTimeout";
     }
 

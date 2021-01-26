@@ -115,105 +115,191 @@ public class ManufacturerFactory {
     }
 
     /**
-     * 多厂商icon上传，多厂商上传同一个icon文件
+     * 多厂商icon上传，多厂商上传同一个icon文件，多线程执行
      *
      * @param file 本地icon文件
      * @return 多厂商icon上传结果
      * @throws FileNotFoundException 本地icon文件找不到
      */
     public static Map<String, Result> uploadIcon(File file) throws FileNotFoundException {
+        return uploadIcon(CommonConfig.mThread, file);
+    }
+
+    /**
+     * 多厂商icon上传，多厂商上传同一个icon文件
+     *
+     * @param mThread 是否使用多线程
+     * @param file    本地icon文件
+     * @return 多厂商icon上传结果
+     * @throws FileNotFoundException 本地icon文件找不到
+     */
+    public static Map<String, Result> uploadIcon(boolean mThread, File file) throws FileNotFoundException {
         if (!file.exists()) {
             throw new FileNotFoundException(file.getAbsolutePath());
         }
         init();
-        Map<String, Result> result = new HashMap<>();
+        Map<String, Result> result = new HashMap<>(factory.size());
         if (factory.size() > 0) {
-            Map<String, CompletableFuture<Result>> futures = factory.entrySet().stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            e -> CompletableFuture.supplyAsync(() -> e.getValue().uploadIcon(file), myExecutor)));
+            if (mThread) {
+                Map<String, CompletableFuture<Result>> futures = factory.entrySet().stream()
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                e -> CompletableFuture.supplyAsync(() -> e.getValue().uploadIcon(file), myExecutor)));
 
-            getFutureResult(result, futures, Thread.currentThread().getStackTrace()[1].getMethodName());
+                getFutureResult(result, futures, Thread.currentThread().getStackTrace()[1].getMethodName());
+            } else {
+                factory.forEach((k, v) -> {
+                    try {
+                        result.put(k, v.uploadIcon(file));
+                    } catch (AuthFailedException e) {
+                        result.put(k, Result.authFail());
+                    }
+                });
+            }
         }
         return result;
     }
 
     /**
-     * 多厂商icon上传，指定每个厂商上传的icon文件
+     * 多厂商icon上传，指定每个厂商上传的icon文件，多线程执行
      *
      * @param manufacturerFile icon文件
      * @return 多厂商icon上传结果
      */
     public static Map<String, Result> uploadIcon(ManufacturerFile... manufacturerFile) {
+        return uploadIcon(CommonConfig.mThread, manufacturerFile);
+    }
+
+    /**
+     * 多厂商icon上传，指定每个厂商上传的icon文件
+     *
+     * @param mThread          是否使用多线程
+     * @param manufacturerFile icon文件
+     * @return 多厂商icon上传结果
+     */
+    public static Map<String, Result> uploadIcon(boolean mThread, ManufacturerFile... manufacturerFile) {
         init();
-        Map<String, Result> result = new HashMap<>();
+        Map<String, Result> result = new HashMap<>(manufacturerFile.length);
         if (factory.size() > 0) {
+            if (mThread) {
+                Function<ManufacturerFile, CompletableFuture<Result>> valueMapper = file -> {
+                    if (!file.exists()) {
+                        return CompletableFuture.supplyAsync(() -> Result.fail(String.format("file %s not found", file.getAbsolutePath())), myExecutor);
+                    }
+                    Optional<BaseManufacturer> optional = Optional.ofNullable(factory.get(file.getManufacturerName()));
+                    return optional.map(baseManufacturer -> CompletableFuture.supplyAsync(() -> baseManufacturer.uploadIcon(file), myExecutor))
+                            .orElseGet(() -> CompletableFuture.supplyAsync(Result::noInstance, myExecutor));
+                };
 
-            Function<ManufacturerFile, CompletableFuture<Result>> valueMapper = file -> {
-                if (!file.exists()) {
-                    return CompletableFuture.supplyAsync(() -> Result.fail(String.format("file %s not found", file.getAbsolutePath())), myExecutor);
-                }
-                Optional<BaseManufacturer> optional = Optional.ofNullable(factory.get(file.getManufacturerName()));
-                return optional.map(baseManufacturer -> CompletableFuture.supplyAsync(() -> baseManufacturer.uploadIcon(file), myExecutor))
-                        .orElseGet(() -> CompletableFuture.supplyAsync(Result::noInstance, myExecutor));
-            };
+                Map<String, CompletableFuture<Result>> futures = Arrays.stream(manufacturerFile)
+                        .collect(Collectors.toMap(ManufacturerFile::getManufacturerName, valueMapper));
 
-            Map<String, CompletableFuture<Result>> futures = Arrays.stream(manufacturerFile)
-                    .collect(Collectors.toMap(ManufacturerFile::getManufacturerName, valueMapper));
-
-            getFutureResult(result, futures, Thread.currentThread().getStackTrace()[1].getMethodName());
+                getFutureResult(result, futures, Thread.currentThread().getStackTrace()[1].getMethodName());
+            } else {
+                Arrays.stream(manufacturerFile).forEach(file -> {
+                    BaseManufacturer manufacturer = factory.get(file.getManufacturerName());
+                    try {
+                        result.put(file.getManufacturerName(), manufacturer.uploadIcon(file));
+                    } catch (AuthFailedException e) {
+                        result.put(file.getManufacturerName(), Result.authFail());
+                    }
+                });
+            }
         }
         return result;
+    }
+
+    /**
+     * 多厂商图片上传，多厂商上传同一个图片文件，多线程执行
+     *
+     * @param file 本地图片文件
+     * @return 多厂商图片上传结果
+     * @throws FileNotFoundException 本地图片文件找不到
+     */
+    public static Map<String, Result> uploadPic(File file) throws FileNotFoundException {
+        return uploadPic(CommonConfig.mThread, file);
     }
 
     /**
      * 多厂商图片上传，多厂商上传同一个图片文件
      *
-     * @param file 本地图片文件
+     * @param mThread 是否使用多线程
+     * @param file    本地图片文件
      * @return 多厂商图片上传结果
-     * @throws FileNotFoundException 本地icon文件找不到
+     * @throws FileNotFoundException 本地图片文件找不到
      */
-    public static Map<String, Result> uploadPic(File file) throws FileNotFoundException {
+    public static Map<String, Result> uploadPic(boolean mThread, File file) throws FileNotFoundException {
         if (!file.exists()) {
             throw new FileNotFoundException(file.getAbsolutePath());
         }
         init();
-        Map<String, Result> result = new HashMap<>();
+        Map<String, Result> result = new HashMap<>(factory.size());
         if (factory.size() > 0) {
-            Map<String, CompletableFuture<Result>> futures = factory.entrySet().stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            e -> CompletableFuture.supplyAsync(() -> e.getValue().uploadPic(file), myExecutor)));
+            if (mThread) {
+                Map<String, CompletableFuture<Result>> futures = factory.entrySet().stream()
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                e -> CompletableFuture.supplyAsync(() -> e.getValue().uploadPic(file), myExecutor)));
 
-            getFutureResult(result, futures, Thread.currentThread().getStackTrace()[1].getMethodName());
+                getFutureResult(result, futures, Thread.currentThread().getStackTrace()[1].getMethodName());
+            } else {
+                factory.forEach((k, v) -> {
+                    try {
+                        result.put(k, v.uploadPic(file));
+                    } catch (AuthFailedException e) {
+                        result.put(k, Result.authFail());
+                    }
+                });
+            }
         }
         return result;
     }
 
     /**
-     * 多厂商图片上传，指定每个厂商上传的图片文件
+     * 多厂商图片上传，指定每个厂商上传的图片文件，多线程执行
      *
      * @param manufacturerFile 图片文件
      * @return 多厂商图片上传结果
      */
     public static Map<String, Result> uploadPic(ManufacturerFile... manufacturerFile) {
+        return uploadPic(CommonConfig.mThread, manufacturerFile);
+    }
+
+    /**
+     * 多厂商图片上传，指定每个厂商上传的图片文件
+     *
+     * @param mThread          是否使用多线程
+     * @param manufacturerFile 图片文件
+     * @return 多厂商图片上传结果
+     */
+    public static Map<String, Result> uploadPic(boolean mThread, ManufacturerFile... manufacturerFile) {
         init();
-        Map<String, Result> result = new HashMap<>();
+        Map<String, Result> result = new HashMap<>(manufacturerFile.length);
         if (factory.size() > 0) {
+            if (mThread) {
+                Function<ManufacturerFile, CompletableFuture<Result>> valueMapper = file -> {
+                    if (!file.exists()) {
+                        return CompletableFuture.supplyAsync(() -> Result.fail(String.format("file %s not found", file.getAbsolutePath())), myExecutor);
+                    }
+                    Optional<BaseManufacturer> optional = Optional.ofNullable(factory.get(file.getManufacturerName()));
+                    return optional.map(baseManufacturer -> CompletableFuture.supplyAsync(() -> baseManufacturer.uploadPic(file), myExecutor))
+                            .orElseGet(() -> CompletableFuture.supplyAsync(Result::noInstance, myExecutor));
+                };
 
-            Function<ManufacturerFile, CompletableFuture<Result>> valueMapper = file -> {
-                if (!file.exists()) {
-                    return CompletableFuture.supplyAsync(() -> Result.fail(String.format("file %s not found", file.getAbsolutePath())), myExecutor);
-                }
-                Optional<BaseManufacturer> optional = Optional.ofNullable(factory.get(file.getManufacturerName()));
-                return optional.map(baseManufacturer -> CompletableFuture.supplyAsync(() -> baseManufacturer.uploadPic(file), myExecutor))
-                        .orElseGet(() -> CompletableFuture.supplyAsync(Result::noInstance, myExecutor));
-            };
+                Map<String, CompletableFuture<Result>> futures = Arrays.stream(manufacturerFile)
+                        .collect(Collectors.toMap(ManufacturerFile::getManufacturerName, valueMapper));
 
-            Map<String, CompletableFuture<Result>> futures = Arrays.stream(manufacturerFile)
-                    .collect(Collectors.toMap(ManufacturerFile::getManufacturerName, valueMapper));
-
-            getFutureResult(result, futures, Thread.currentThread().getStackTrace()[1].getMethodName());
+                getFutureResult(result, futures, Thread.currentThread().getStackTrace()[1].getMethodName());
+            } else {
+                Arrays.stream(manufacturerFile).forEach(file -> {
+                    BaseManufacturer manufacturer = factory.get(file.getManufacturerName());
+                    try {
+                        result.put(file.getManufacturerName(), manufacturer.uploadPic(file));
+                    } catch (AuthFailedException e) {
+                        result.put(file.getManufacturerName(), Result.authFail());
+                    }
+                });
+            }
         }
         return result;
     }
