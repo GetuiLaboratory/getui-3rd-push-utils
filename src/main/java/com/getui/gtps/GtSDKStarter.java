@@ -6,7 +6,9 @@ import com.getui.gtps.manufacturer.ManufacturerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author wangxu
@@ -31,13 +33,17 @@ public class GtSDKStarter {
     /**
      * 加载配置文件
      *
-     * @param fileName 配置文件名，用户目录下的相对路径
+     * @param fileName 配置文件名，当前方法调用者类的ClassLoader所在路径下的配置文件
      * @return GtSDKStarter
      * @throws IOException 加载配置文件时可能会有IOException
      */
-    public GtSDKStarter loadPropertyFile(String fileName) throws IOException {
-        CommonConfig.manufacturerProperties.load(new java.io.FileInputStream(System.getProperty("user.dir") + fileName));
-        return this;
+    public GtSDKStarter loadPropertyFile(String fileName) throws ClassNotFoundException, IOException {
+        InputStream inputStream = Class.forName(Thread.currentThread().getStackTrace()[2].getClassName()).getClassLoader().getResourceAsStream(fileName);
+        if (inputStream != null) {
+            CommonConfig.manufacturerProperties.load(Class.forName(Thread.currentThread().getStackTrace()[2].getClassName()).getClassLoader().getResourceAsStream(fileName));
+            return this;
+        }
+        throw new FileNotFoundException(fileName);
     }
 
     /**
@@ -53,6 +59,5 @@ public class GtSDKStarter {
         }
         LOGGER.info("GT SDKInit finish.");
     }
-
 
 }

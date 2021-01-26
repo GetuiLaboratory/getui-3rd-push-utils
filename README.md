@@ -34,6 +34,8 @@ GtSDK.moduleSet=oppo,xm
 ## 判断文件是否相同的方式，支持sha1和fileName。如不配置默认使用fileName。（为了避免文件重复上传，文件上传后sdk会将厂商返回的链接缓存起来，下次从缓存里取。
 ## 这里就是决定使用什么方式来判断文件是否重复。缓存的时效使用各厂商icon最大存储时效，由于目前使用的本地缓存，应用重启也会导致缓存清空）
 GtSDK.judgeFile=sha1
+## 多厂商接口调用是否默认使用多线程
+GtSDK.mThread=true
 ## 接口调用超时等待时间，单位毫秒，默认500毫秒
 GtSDK.callTimeout=500
 ## 以下是各厂商配置参数

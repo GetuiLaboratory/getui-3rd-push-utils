@@ -2,6 +2,7 @@ package com.getui.gtps.config;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,6 +39,11 @@ public class CommonConfig {
     public static String sameFileJudgePattern = ByName;
 
     /**
+     * 多厂商接口调用默认是否多线程
+     */
+    public static boolean mThread = true;
+
+    /**
      * 接口调用超时等待时间，单位毫秒，默认500毫秒
      */
     public static int callTimeout = 500;
@@ -50,6 +56,10 @@ public class CommonConfig {
     public static Properties manufacturerProperties = new Properties();
 
     /* 以下是sdk参数的初始化 */
+
+    /**
+     * 以下是sdk参数的初始化
+     */
     public static void init() {
         initPropertiesByFile();
     }
@@ -58,7 +68,7 @@ public class CommonConfig {
      * 按照配置文件进行参数初始化
      */
     private static void initPropertiesByFile() {
-        CommonConfig.manufacturerInitSwitch = Boolean.parseBoolean(manufacturerProperties.getProperty(ManufacturerInitSwitch));
+        CommonConfig.manufacturerInitSwitch = !Objects.equals(false, Boolean.parseBoolean(manufacturerProperties.getProperty(ManufacturerInitSwitch, "true")));
         String moduleString = manufacturerProperties.getProperty(ModuleSet);
         if (moduleString != null) {
             String[] modules = moduleString.split(",");
@@ -66,7 +76,8 @@ public class CommonConfig {
             Collections.addAll(CommonConfig.moduleSet, modules);
         }
         CommonConfig.sameFileJudgePattern = BySha1.equalsIgnoreCase(manufacturerProperties.getProperty(JudgeFile)) ? BySha1 : ByName;
-        CommonConfig.callTimeout = Integer.valueOf((String) manufacturerProperties.getOrDefault(CallTimeout, String.valueOf(CommonConfig.callTimeout)));
+        CommonConfig.mThread = !Objects.equals(false, Boolean.parseBoolean(manufacturerProperties.getProperty(MThread, "true")));
+        CommonConfig.callTimeout = Integer.parseInt((String) manufacturerProperties.getOrDefault(CallTimeout, String.valueOf(CommonConfig.callTimeout)));
     }
 
 }
