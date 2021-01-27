@@ -28,4 +28,19 @@ public class OppoConstants {
             return this.path;
         }
     }
+
+    enum ReturnCode {
+        Success(0),
+        InvalidAuthCode(11);
+
+        private final int code;
+
+        ReturnCode(int code) {
+            this.code = code;
+        }
+
+        int getCode() {
+            return this.code;
+        }
+    }
 }

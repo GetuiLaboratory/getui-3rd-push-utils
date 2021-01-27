@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.getui.gtps.config.GtSDKConstants.CommandPreValue.BySha1;
 import static com.getui.gtps.manufacturer.constant.ManufacturerConstants.MANUFACTURER_NAME_OPPO;
@@ -37,6 +38,8 @@ public class OppoService extends BaseManufacturer {
 
     public final static String name = MANUFACTURER_NAME_OPPO;
 
+    private final AtomicLong authLock = new AtomicLong(System.currentTimeMillis());
+
     public OppoService(String appId, String appKey, String appSecret, String masterSecret) {
         super(appId, appKey, appSecret, masterSecret);
     }
@@ -48,10 +51,7 @@ public class OppoService extends BaseManufacturer {
 
     @Override
     protected void auth() throws AuthFailedException {
-        if (!this.needAuth()) {
-            return;
-        }
-        synchronized (this) {
+        synchronized (authLock) {
             // 可能并发操作已鉴权
             if (!this.needAuth()) {
                 return;
@@ -69,16 +69,19 @@ public class OppoService extends BaseManufacturer {
                     LOGGER.info("OppoService auth result: {}", result.toString());
                     if (result.success()) {
                         JsonNode jsonNode = new ObjectMapper().readTree(result.getContent());
-                        if (jsonNode.get("code").intValue() == 0) {
+                        if (OppoConstants.ReturnCode.Success.getCode() == jsonNode.get("code").intValue()) {
                             String authToken = jsonNode.get("data").get("auth_token").textValue();
-                            this.cacheMap.put(AUTH_TOKEN, CacheServiceFactory.getCacheService(CaffeineCacheService.class).set(name, authToken, 24 * 3600));
+                            // OPPO说明：鉴权令牌有效期是24小时，在有效期内多次申请均返回相同的令牌，令牌超过有效期后申请将返回新令牌。令牌过期失效后有10分钟过渡期，过渡期间新旧两个auth_token均可使用，超过过渡期后只有新令牌可使用。
+                            // TTL说明：为了防止24小时临界点调用接口时，op可能返回旧的token被我们换成24小时，这里+5分钟进行缓存
+                            this.cacheMap.put(AUTH_TOKEN, CacheServiceFactory.getCacheService(CaffeineCacheService.class).set(name, authToken, 24 * 3600 + 5 * 60));
+                            authLock.compareAndSet(authLock.get(), System.currentTimeMillis());
                         }
                     }
                 } catch (JsonProcessingException ex) {
                     e = ex;
                 }
-            } while (needAuth() && i++ < 2);
-            if (needAuth()) {
+            } while (isEmptyToken(getAuthTokenFromCache()) && i++ < 2);
+            if (isEmptyToken(getAuthTokenFromCache())) {
                 throw new AuthFailedException(this.getName(), e);
             }
         }
@@ -91,21 +94,44 @@ public class OppoService extends BaseManufacturer {
 
     @Override
     protected boolean needAuth() {
-        Object cache = this.cacheMap.get(AUTH_TOKEN);
-        return cache == null || CacheServiceFactory.getCacheService(CaffeineCacheService.class).get(cache, name) == null;
+        return isEmptyToken(getAuthTokenFromCache()) || System.currentTimeMillis() - authLock.get() >= 1000;
     }
 
     @Override
     protected String getAuthToken() {
-        return (String) CacheServiceFactory.getCacheService(CaffeineCacheService.class).get(this.cacheMap.get(AUTH_TOKEN), name);
+        String token = getAuthTokenFromCache();
+        if (isEmptyToken(token)) {
+            auth();
+            token = getAuthTokenFromCache();
+        }
+        return token;
+    }
+
+    private String getAuthTokenFromCache() {
+        Object cache = this.cacheMap.get(AUTH_TOKEN);
+        String token = null;
+        if (cache != null) {
+            token = (String) CacheServiceFactory.getCacheService(CaffeineCacheService.class).get(cache, name);
+        }
+        return token;
+    }
+
+    private boolean isEmptyToken(String token) {
+        return token == null || token.length() == 0;
     }
 
     @Override
     public Result uploadIcon(File file) throws AuthFailedException {
-        auth();
         String cacheKey = BySha1.equals(CommonConfig.sameFileJudgePattern) ? FileUtils.sha1(file) : file.getName();
         Optional<Result> cacheResult = getCacheResult(ICON_URL, cacheKey);
-        return cacheResult.orElseGet(() -> uploadIcon(file, cacheKey));
+        return cacheResult.orElseGet(() -> {
+            Result result = uploadIcon(file, cacheKey);
+            if (Result.invalidAuthToken().getCode() == result.getCode()) {
+                auth();
+                result = uploadIcon(file, cacheKey);
+            }
+            return result;
+        });
     }
 
     private Result uploadIcon(File file, String cacheKey) {
@@ -117,10 +143,13 @@ public class OppoService extends BaseManufacturer {
         if (httpResponse.success()) {
             try {
                 JsonNode jsonNode = new ObjectMapper().readTree(httpResponse.getContent());
-                if (0 == jsonNode.get("code").intValue()) {
+                int returnCode = jsonNode.get("code").intValue();
+                if (OppoConstants.ReturnCode.Success.getCode() == returnCode) {
                     String url = jsonNode.get("data").get("small_picture_id").textValue();
                     this.cacheMap.put(ICON_URL, CacheServiceFactory.getCacheService(CaffeineCacheService.class).set(cacheKey, url));
                     return Result.success(url);
+                } else if (OppoConstants.ReturnCode.InvalidAuthCode.getCode() == returnCode) {
+                    return Result.invalidAuthToken();
                 } else {
                     return Result.fail(jsonNode.get("message").textValue());
                 }
@@ -133,10 +162,16 @@ public class OppoService extends BaseManufacturer {
 
     @Override
     public Result uploadPic(File file) {
-        auth();
         String cacheKey = BySha1.equals(CommonConfig.sameFileJudgePattern) ? FileUtils.sha1(file) : file.getName();
         Optional<Result> cacheResult = getCacheResult(PIC_URL, cacheKey);
-        return cacheResult.orElseGet(() -> uploadPic(file, cacheKey));
+        return cacheResult.orElseGet(() -> {
+            Result result = uploadPic(file, cacheKey);
+            if (Result.invalidAuthToken().getCode() == result.getCode()) {
+                auth();
+                result = uploadPic(file, cacheKey);
+            }
+            return result;
+        });
     }
 
     private Result uploadPic(File file, String cacheKey) {
@@ -148,10 +183,13 @@ public class OppoService extends BaseManufacturer {
         if (httpResponse.success()) {
             try {
                 JsonNode jsonNode = new ObjectMapper().readTree(httpResponse.getContent());
-                if (0 == jsonNode.get("code").intValue()) {
+                int returnCode = jsonNode.get("code").intValue();
+                if (OppoConstants.ReturnCode.Success.getCode() == returnCode) {
                     String url = jsonNode.get("data").get("big_picture_id").textValue();
                     this.cacheMap.put(PIC_URL, CacheServiceFactory.getCacheService(CaffeineCacheService.class).set(cacheKey, url));
                     return Result.success(url);
+                } else if (OppoConstants.ReturnCode.InvalidAuthCode.getCode() == returnCode) {
+                    return Result.invalidAuthToken();
                 } else {
                     return Result.fail(jsonNode.get("message").textValue());
                 }
