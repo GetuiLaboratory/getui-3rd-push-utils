@@ -18,11 +18,13 @@ public class Result implements Serializable {
     public final static int timeout = 2;
     public final static int noInstance = 3;
     public final static int authFail = 4;
+    public final static int invalidAuthToken = 5;
     public final static String SUCCESS = "success";
     public final static String FAIL = "fail";
     public final static String TIMEOUT = "timeout";
     public final static String NO_INSTANCE = "has no manufacturer instance";
     public final static String AUTH_FAIL = "auth fail";
+    public final static String InvalidAuthToken = "Invalid Auth Token";
 
     private final int code;
     private final String message;
@@ -70,6 +72,9 @@ public class Result implements Serializable {
         return new Result(authFail, AUTH_FAIL, null);
     }
 
+    public static Result invalidAuthToken() {
+        return new Result(invalidAuthToken, InvalidAuthToken, null);
+    }
 
     @Override
     public String toString() {

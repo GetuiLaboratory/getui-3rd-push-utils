@@ -17,7 +17,6 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 /**
- * @author zhourh@getui.com
  * Date: 2021-01-06
  */
 public class TestUtils {
