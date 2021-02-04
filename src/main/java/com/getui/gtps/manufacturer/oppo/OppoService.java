@@ -151,7 +151,7 @@ public class OppoService extends BaseManufacturer {
                 } else if (OppoConstants.ReturnCode.InvalidAuthCode.getCode() == returnCode) {
                     return Result.invalidAuthToken();
                 } else {
-                    return Result.fail(jsonNode.get("message").textValue());
+                    return Result.fail(jsonNode.toString());
                 }
             } catch (JsonProcessingException e) {
                 LOGGER.error("OppoService uploadIcon error. ", e);
@@ -191,7 +191,7 @@ public class OppoService extends BaseManufacturer {
                 } else if (OppoConstants.ReturnCode.InvalidAuthCode.getCode() == returnCode) {
                     return Result.invalidAuthToken();
                 } else {
-                    return Result.fail(jsonNode.get("message").textValue());
+                    return Result.fail(jsonNode.toString());
                 }
             } catch (JsonProcessingException e) {
                 LOGGER.error("OppoService uploadIcon error. ", e);
