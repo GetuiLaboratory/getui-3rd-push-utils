@@ -71,17 +71,19 @@ public class XmService extends BaseManufacturer {
         Map<String, String> headParameters = new HashMap<>();
         headParameters.put("Authorization", "key=" + this.getAppSecret());
         Map<String, String> requestParameters = new HashMap<>();
-        HttpResponse httpResponse = HttpUtils.postFile(XmConstants.RequestPath.UPLOAD_ICON.getPath(), headParameters, requestParameters, file, CommonConfig.callTimeout);
+        requestParameters.put("is_global", "false");
+        requestParameters.put("is_icon", "true");
+        HttpResponse httpResponse = HttpUtils.postFile(XmConstants.RequestPath.UPLOAD_PIC.getPath(), headParameters, requestParameters, file, CommonConfig.callTimeout);
         LOGGER.info("XmService uploadIcon httpResponse: {}", httpResponse.toString());
         if (httpResponse.success()) {
             try {
                 JsonNode jsonNode = new ObjectMapper().readTree(httpResponse.getContent());
                 if (0 == jsonNode.get("code").intValue()) {
-                    String url = jsonNode.get("data").get("small_icon_url").textValue();
+                    String url = jsonNode.get("data").get("icon_url").textValue();
                     this.cacheMap.put(ICON_URL, CacheServiceFactory.getCacheService(CaffeineCacheService.class).set(cacheKey, url));
                     return Result.success(url);
                 } else {
-                    return Result.fail(jsonNode.get("description").textValue());
+                    return Result.fail(jsonNode.toString());
                 }
             } catch (JsonProcessingException e) {
                 LOGGER.error("XmService uploadIcon error. ", e);
@@ -113,7 +115,7 @@ public class XmService extends BaseManufacturer {
                     this.cacheMap.put(PIC_URL, CacheServiceFactory.getCacheService(CaffeineCacheService.class).set(cacheKey, url));
                     return Result.success(url);
                 } else {
-                    return Result.fail(jsonNode.get("description").textValue());
+                    return Result.fail(jsonNode.toString());
                 }
             } catch (JsonProcessingException e) {
                 LOGGER.error("XmService uploadIcon error. ", e);

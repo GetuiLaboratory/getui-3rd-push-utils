@@ -3,7 +3,8 @@ package com.getui.gtps.manufacturer;
 import com.getui.gtps.config.CommonConfig;
 import com.getui.gtps.config.GtSDKConstants;
 import com.getui.gtps.exception.AuthFailedException;
-import org.reflections.Reflections;
+import com.getui.gtps.manufacturer.oppo.OppoService;
+import com.getui.gtps.manufacturer.xm.XmService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +15,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -38,6 +40,13 @@ import static com.getui.gtps.config.GtSDKConstants.CommandPreValue.AllModule;
 public class ManufacturerFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ManufacturerFactory.class);
+
+    private static final Set<Class<? extends BaseManufacturer>> subTypes = new HashSet<Class<? extends BaseManufacturer>>() {
+        {
+            add(XmService.class);
+            add(OppoService.class);
+        }
+    };
 
     /**
      * 手动配置线程执行器的线程池大小，线程数请结合BaseManufacturer子类梳理调节
@@ -68,8 +77,6 @@ public class ManufacturerFactory {
      * 多厂商服务实例初始化
      */
     private static void initManufacturersInstance() {
-        Reflections reflections = new Reflections(BaseManufacturer.class.getPackage().getName());
-        Set<Class<? extends BaseManufacturer>> subTypes = reflections.getSubTypesOf(BaseManufacturer.class);
         subTypes.forEach(clazz -> {
             String name = "";
             try {

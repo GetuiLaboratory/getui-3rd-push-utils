@@ -11,7 +11,7 @@
 <dependency>
     <groupId>com.getui.push</groupId>
     <artifactId>getui-3rd-push-utils</artifactId>
-    <version>1.0.0.0</version>
+    <version>1.1.0.0</version>
 </dependency>
 ```
 
