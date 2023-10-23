@@ -18,3 +18,7 @@
 * 去除org.reflections.reflections依赖，涉及到使用reflections工具的地方自己实现
 * 调用XM和OP上传接口上传失败后，XM和OP的返回信息完整输出到返回结果的data中
 * XM的图片上传接口由/media/upload/smallIcon调整为/media/upload/image
+
+[1.1.0.1] - 2023-10-23
+
+* 修复FileInputStream没有正确关闭的问题
