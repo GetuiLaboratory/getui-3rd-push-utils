@@ -5,9 +5,7 @@ import java.io.Serializable;
 /**
  * 厂商服务返回结果，此类是厂商api调用结果的包装类
  *
- * @author wangxu
  * date: 2020/12/31
- * email：wangx2@getui.com
  */
 public class Result implements Serializable {
 

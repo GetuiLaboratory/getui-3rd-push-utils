@@ -28,9 +28,7 @@ import static com.getui.gtps.manufacturer.constant.ManufacturerConstants.MANUFAC
 /**
  * oppo厂商的服务实现类
  *
- * @author wangxu
  * date: 2020/12/25
- * email：wangx2@getui.com
  */
 public class OppoService extends BaseManufacturer {
 

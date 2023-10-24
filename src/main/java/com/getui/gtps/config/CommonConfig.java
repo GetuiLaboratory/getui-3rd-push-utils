@@ -15,7 +15,6 @@ import static com.getui.gtps.config.GtSDKConstants.FilePropertyName.*;
  * sdk配置参数 <br>
  * 参数都是public的，用户可以按照sdk初始化流程进行初始化，也可以自己在厂商实例初始化前自定义指定参数值
  *
- * @author wangxu
  * date: 2020/12/25
  */
 public class CommonConfig {

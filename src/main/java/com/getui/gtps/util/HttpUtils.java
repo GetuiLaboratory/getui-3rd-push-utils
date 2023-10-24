@@ -15,9 +15,7 @@ import java.util.UUID;
 /**
  * Http请求工具类
  *
- * @author wangxu
  * date: 2020/12/28
- * email：wangx2@getui.com
  */
 public class HttpUtils {
 

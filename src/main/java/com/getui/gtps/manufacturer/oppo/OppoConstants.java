@@ -1,9 +1,7 @@
 package com.getui.gtps.manufacturer.oppo;
 
 /**
- * @author wangxu
  * date: 2020/12/27
- * email：wangx2@getui.com
  */
 public class OppoConstants {
     static final String PARAM_APP_KEY = "app_key";

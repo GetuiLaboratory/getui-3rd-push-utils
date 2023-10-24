@@ -8,9 +8,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * CaffeineCache缓存服务实现
  *
- * @author wangxu
  * date: 2020/12/28
- * email：wangx2@getui.com
  */
 public class CaffeineCacheService implements CacheService {
 

@@ -8,9 +8,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author wangxu
  * date: 2020/12/28
- * email：wangx2@getui.com
  */
 public class CacheServiceFactory {
 

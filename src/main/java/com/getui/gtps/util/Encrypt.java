@@ -6,9 +6,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  * SHA256和SHA512加密工具
  *
- * @author wangxu
  * date: 2020/12/27
- * email：wangx2@getui.com
  */
 public class Encrypt {
     /**

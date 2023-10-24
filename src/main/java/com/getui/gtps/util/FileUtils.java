@@ -13,9 +13,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  * 文件工具类
  *
- * @author wangxu
  * date: 2020/12/31
- * email：wangx2@getui.com
  */
 public class FileUtils {
 

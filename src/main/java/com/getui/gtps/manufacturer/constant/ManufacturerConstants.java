@@ -3,9 +3,7 @@ package com.getui.gtps.manufacturer.constant;
 /**
  * 厂商服务常量
  *
- * @author wangxu
  * date: 2020/12/25
- * email：wangx2@getui.com
  */
 public class ManufacturerConstants {
 
