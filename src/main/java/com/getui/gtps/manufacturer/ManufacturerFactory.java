@@ -33,9 +33,7 @@ import static com.getui.gtps.config.GtSDKConstants.CommandPreValue.AllModule;
 /**
  * 厂商工厂：包含多厂商服务实例初始化、鉴权以及接口服务
  *
- * @author wangxu
  * date: 2020/12/25
- * email：wangx2@getui.com
  */
 public class ManufacturerFactory {
 

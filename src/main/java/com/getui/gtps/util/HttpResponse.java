@@ -3,9 +3,7 @@ package com.getui.gtps.util;
 /**
  * Http调用返回结果包装类
  *
- * @author wangxu
  * date: 2020/12/28
- * email：wangx2@getui.com
  */
 public class HttpResponse {
 

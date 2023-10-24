@@ -10,9 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 厂商抽象类，定义了多厂商共有的特效
  *
- * @author wangxu
  * date: 2020/12/25
- * email：wangx2@getui.com
  */
 public abstract class BaseManufacturer implements ManufacturerService {
 

@@ -3,9 +3,7 @@ package com.getui.gtps.config;
 /**
  * sdk常量
  *
- * @author wangxu
  * date: 2020/12/25
- * email：wangx2@getui.com
  */
 public class GtSDKConstants {
 

@@ -15,9 +15,7 @@ import java.util.UUID;
 /**
  * Http请求工具类
  *
- * @author wangxu
  * date: 2020/12/28
- * email：wangx2@getui.com
  */
 public class HttpUtils {
 
@@ -155,11 +153,12 @@ public class HttpUtils {
                     new MimetypesFileTypeMap().getContentType(file) +
                     LINE_END + LINE_END;// 参数头设置完以后需要两个换行，然后才是参数内容
             os.write(requestParams.getBytes());
-            FileInputStream fis = new FileInputStream(file);
-            byte[] b = new byte[1024];
-            int n;
-            while ((n = fis.read(b)) != -1) {
-                os.write(b, 0, n);
+            try (FileInputStream fis = new FileInputStream(file)) {
+                byte[] b = new byte[1024];
+                int n;
+                while ((n = fis.read(b)) != -1) {
+                    os.write(b, 0, n);
+                }
             }
             os.write(LINE_END.getBytes());
             os.flush();

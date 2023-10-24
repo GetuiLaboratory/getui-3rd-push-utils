@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * @author wangxu
  * date: 2020/12/25
  */
 public class GtSDKStarter {

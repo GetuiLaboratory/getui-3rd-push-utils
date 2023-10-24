@@ -7,9 +7,7 @@ import java.io.File;
 /**
  * 厂商服务接口，定义了多厂商共有的服务
  *
- * @author wangxu
  * date: 2020/12/25
- * email：wangx2@getui.com
  */
 public interface ManufacturerService {
 

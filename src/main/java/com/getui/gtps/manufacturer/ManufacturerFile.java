@@ -8,9 +8,7 @@ import java.net.URI;
 /**
  * 厂商文件类，只比java.io.File多了manufacturerName属性
  *
- * @author wangxu
  * date: 2021/1/5
- * email：wangx2@getui.com
  */
 public class ManufacturerFile extends File {
     private final String manufacturerName;
