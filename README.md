@@ -1,29 +1,36 @@
 # GT SDK Libraries for Java
+
 该SDK是多厂商推送工具集，目前包装的功能有：icon上传。支持的厂商模块有OPPO、XM。
 
 需要的jdk版本：
+
 - JDK 1.8 or higher.
 
 ## Adding dependency to your build
+
 使用maven添加依赖如下
 
 ```xml
 <dependency>
     <groupId>com.getui.push</groupId>
     <artifactId>getui-3rd-push-utils</artifactId>
-    <version>1.1.0.0</version>
+    <version>1.1.0.1</version>
 </dependency>
 ```
 
 ## Usage
+
 ### sdk初始化
+
 在应用配置类中初始化执行一次如下代码
+
 ```java
 // 配置文件的路径是运行程序所在的相对路径
 GtSDKStarter.getInstance().loadPropertyFile("/src/main/resources/application.properties").init();
 ```
 
 ### 配置说明
+
 请在上一步指定的配置文件内添加以下参数，
 
 ```properties
@@ -50,6 +57,7 @@ GtSDK.OPPO.MasterSecret=
 ```
 
 ### 服务调用
+
 目前提供了四个服务：
 
 1. 多厂商上传同一个icon文件。完成上两步后，只需要在需要上传icon的代码处编写以下代码即可得到各厂商上传结果。
@@ -87,11 +95,14 @@ Map<String, Result> result = ManufacturerFactory.uploadPic(manufacturerFiles);
 ```
 
 ### 服务结果解析
+
 上一步可以看出上传接口返回的都是个Map，Map的key是厂商名（OPPO、XM），value是一个Result对象。Result包含以下三个属性：
+
 - code：结果码，0成功、1失败、2超时失败、3没有厂商实例（正常情况是配置没配这个厂商，但代码里却想使用这个厂商的服务）、4鉴权失败
 - message：success、fail、timeout、has no manufacturer instance、auth fail
 - data：成功时，值为icon在各厂商的上传url结果（或者picId）；失败时，值是失败原因。
 
 ## 其他说明
+
 由于该sdk本质只是各厂商api的包装，所以对于一些接口限制和返回处理，需要遵循各厂商的api文档。下面放出
 [OPPO](https://open.oppomobile.com/wiki/doc#id=10693) 和[XM](https://dev.mi.com/console/doc/detail?pId=1163#_10_1) 的API在线文档供参考。
